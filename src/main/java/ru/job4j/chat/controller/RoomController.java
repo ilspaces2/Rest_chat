@@ -4,12 +4,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import ru.job4j.chat.exception.RoomAlreadyExistsException;
 import ru.job4j.chat.model.Message;
 import ru.job4j.chat.model.Person;
 import ru.job4j.chat.model.Room;
 import ru.job4j.chat.service.RoomService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/room")
@@ -28,65 +30,37 @@ public class RoomController {
         this.roomService = roomService;
     }
 
-    @GetMapping("/")
+    @GetMapping("")
     public List<Room> findAllRooms() {
         return roomService.findAll();
     }
 
     @GetMapping("/{roomId}")
     public ResponseEntity<Room> findRoomById(@PathVariable int roomId) {
-        var room = roomService.findById(roomId);
-        return new ResponseEntity<>(
-                room.orElse(null),
-                room.isPresent() ? HttpStatus.OK : HttpStatus.NOT_FOUND
-        );
+        return new ResponseEntity<>(roomService.findById(roomId), HttpStatus.OK);
     }
 
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<Room> createRoom(@RequestBody Room room) {
         return new ResponseEntity<>(roomService.save(room), HttpStatus.CREATED);
     }
 
     @PostMapping("/addPerson/{roomId}")
-    public ResponseEntity<String> addPerson(@PathVariable int roomId, @RequestBody Person person) {
-        var room = roomService.findById(roomId);
-        if (room.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" RoomId: %d not found ", roomId), HttpStatus.NOT_FOUND
-            );
-        }
-        Room rzl = room.get();
-        rzl.addPerson(person);
-        roomService.update(rzl);
+    public ResponseEntity<Void> addPerson(@PathVariable int roomId, @RequestBody Person person) {
+        roomService.addPersonToRoom(roomId, person);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/addMsg/{roomId}")
-    public ResponseEntity<String> addMessage(@PathVariable int roomId, @RequestBody Message message) {
-        var room = roomService.findById(roomId);
-        if (room.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" RoomId: %d not found ", roomId), HttpStatus.NOT_FOUND
-            );
-        }
-        Room rzl = room.get();
-        rzl.addMessage(rest.postForObject(API_ADD_MESSAGE, message, Message.class));
-        roomService.update(rzl);
+    public ResponseEntity<Void> addMessage(@PathVariable int roomId, @RequestBody Message message) {
+        roomService.addMessageToRoom(roomId, rest.postForObject(API_ADD_MESSAGE, message, Message.class));
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/updRoomName/{roomId}")
-    public ResponseEntity<String> updateRoomName(@PathVariable int roomId, @RequestBody String name) {
-        var room = roomService.findById(roomId);
-        if (room.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" RoomId: %d not found ", roomId), HttpStatus.NOT_FOUND
-            );
-        }
-        Room rzl = room.get();
-        rzl.setName(name);
-        roomService.update(rzl);
-        return new ResponseEntity<>(String.format(" Room name id %s ", name), HttpStatus.OK);
+    public ResponseEntity<String> updateRoomName(@PathVariable int roomId, @RequestBody String roomName) {
+        roomService.updateRoomName(roomId, roomName);
+        return new ResponseEntity<>(String.format(" Room name id %s ", roomName), HttpStatus.OK);
     }
 
     @DeleteMapping("/{roomId}")
@@ -99,39 +73,24 @@ public class RoomController {
 
     @DeleteMapping("/delMsg/{roomId}/{msgPersonName}/{msgId}")
     public ResponseEntity<String> deleteMessage(@PathVariable int roomId, @PathVariable String msgPersonName, @PathVariable int msgId) {
-        var room = roomService.findById(roomId);
-        if (room.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" RoomId: %d not found ", roomId), HttpStatus.NOT_FOUND
-            );
-        }
-        Room rzl = room.get();
-        if (!rzl.getMessages().removeIf(msg -> msg.getId() == msgId
-                && msg.getPersonName().equals(msgPersonName))) {
-            return new ResponseEntity<>(
-                    " Message not found in room ", HttpStatus.NOT_FOUND
-            );
-        }
-        roomService.update(rzl);
+        roomService.deleteMessageFromRoom(roomId, msgId, msgPersonName);
         rest.delete(API_DEL_MESSAGE, msgId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/exitRoom/{roomId}/{personId}")
     public ResponseEntity<String> exitRoom(@PathVariable int roomId, @PathVariable int personId) {
-        var room = roomService.findById(roomId);
-        if (room.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" RoomId: %d not found ", roomId), HttpStatus.NOT_FOUND
-            );
-        }
-        Room rzl = room.get();
-        if (!rzl.getPersons().removeIf(person -> person.getId() == personId)) {
-            return new ResponseEntity<>(
-                    " Person not found in room ", HttpStatus.NOT_FOUND
-            );
-        }
-        roomService.update(rzl);
+        roomService.exitPersonFromRoom(roomId, personId);
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleException(NoSuchElementException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RoomAlreadyExistsException.class)
+    public ResponseEntity<String> handleException(RoomAlreadyExistsException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
 }

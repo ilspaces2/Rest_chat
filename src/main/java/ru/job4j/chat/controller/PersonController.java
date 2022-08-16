@@ -9,6 +9,8 @@ import ru.job4j.chat.model.Message;
 import ru.job4j.chat.model.Person;
 import ru.job4j.chat.service.PersonService;
 
+import java.util.NoSuchElementException;
+
 @RestController
 @RequestMapping("/person")
 public class PersonController {
@@ -32,14 +34,10 @@ public class PersonController {
 
     @GetMapping("/{personId}")
     public ResponseEntity<Person> findPersonById(@PathVariable int personId) {
-        var optionalPerson = personService.findById(personId);
-        return new ResponseEntity<>(
-                optionalPerson.orElse(null),
-                optionalPerson.isPresent() ? HttpStatus.OK : HttpStatus.NOT_FOUND
-        );
+        return new ResponseEntity<>(personService.findById(personId), HttpStatus.OK);
     }
 
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<Void> createPerson(@RequestBody Person person) {
         personService.save(person);
         return ResponseEntity.ok().build();
@@ -47,13 +45,7 @@ public class PersonController {
 
     @PostMapping("/enterRoom/{roomId}/{personId}")
     public ResponseEntity<String> enterRoom(@PathVariable int roomId, @PathVariable int personId) {
-        var optionalPerson = personService.findById(personId);
-        if (optionalPerson.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" PersonId: %d not found ", personId), HttpStatus.NOT_FOUND
-            );
-        }
-        rest.postForObject(API_ROOM_ADD_PERSON, optionalPerson, Person.class, roomId);
+        rest.postForObject(API_ROOM_ADD_PERSON, personService.findById(personId), Person.class, roomId);
         return new ResponseEntity<>(
                 String.format(" PersonId: %d enter the roomId: %d ", personId, roomId),
                 HttpStatus.OK
@@ -62,12 +54,7 @@ public class PersonController {
 
     @DeleteMapping("/exitRoom/{roomId}/{personId}")
     public ResponseEntity<String> exitRoom(@PathVariable int roomId, @PathVariable int personId) {
-        var optionalPerson = personService.findById(personId);
-        if (optionalPerson.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" PersonId: %d not found ", personId), HttpStatus.NOT_FOUND
-            );
-        }
+        personService.findById(personId);
         rest.delete(API_ROOM_DEL_PERSON, roomId, personId);
         return new ResponseEntity<>(
                 String.format(" PersonId: %d leaving the roomId: %d ", personId, roomId),
@@ -77,13 +64,7 @@ public class PersonController {
 
     @PostMapping("/sendMsg/{roomId}/{personId}")
     public ResponseEntity<String> sendMsg(@RequestBody Message message, @PathVariable int roomId, @PathVariable int personId) {
-        var optionalPerson = personService.findById(personId);
-        if (optionalPerson.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" PersonId: %d not found ", personId), HttpStatus.NOT_FOUND
-            );
-        }
-        message.setPersonName(optionalPerson.get().getName());
+        message.setPersonName(personService.findById(personId).getName());
         rest.postForObject(API_ROOM_ADD_MESSAGE, message, Message.class, roomId);
         return new ResponseEntity<>(
                 " Message send ", HttpStatus.OK
@@ -92,13 +73,7 @@ public class PersonController {
 
     @DeleteMapping("/delMsg/{roomId}/{personId}/{msgId}")
     public ResponseEntity<String> deleteMsg(@PathVariable int roomId, @PathVariable int personId, @PathVariable int msgId) {
-        var optionalPerson = personService.findById(personId);
-        if (optionalPerson.isEmpty()) {
-            return new ResponseEntity<>(
-                    String.format(" PersonId: %d not found ", personId), HttpStatus.NOT_FOUND
-            );
-        }
-        rest.delete(API_ROOM_DEL_MESSAGE, roomId, optionalPerson.get().getName(), msgId);
+        rest.delete(API_ROOM_DEL_MESSAGE, roomId, personService.findById(personId).getName(), msgId);
         return new ResponseEntity<>(
                 " Message delete ", HttpStatus.OK
         );
@@ -107,5 +82,10 @@ public class PersonController {
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<String> handleException(UsernameAlreadyExistsException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleException(NoSuchElementException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 }

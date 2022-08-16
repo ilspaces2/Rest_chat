@@ -1,11 +1,16 @@
 package ru.job4j.chat.service;
 
+import org.postgresql.util.PSQLException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import ru.job4j.chat.exception.RoomAlreadyExistsException;
+import ru.job4j.chat.model.Message;
+import ru.job4j.chat.model.Person;
 import ru.job4j.chat.model.Room;
 import ru.job4j.chat.repository.RoomRepository;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 @Service
 public class RoomService {
@@ -20,19 +25,67 @@ public class RoomService {
         return repository.findAll();
     }
 
-    public Optional<Room> findById(int id) {
-        return repository.findById(id);
+    public Room findById(int id) {
+        return findRoom(id);
     }
 
     public Room save(Room room) {
+        try {
+            return repository.save(room);
+        } catch (DataAccessException err) {
+            if (err.getMostSpecificCause() instanceof PSQLException
+                    && "23505".equals(((PSQLException) err.getMostSpecificCause()).getSQLState())) {
+                throw new RoomAlreadyExistsException("Room already exists");
+            }
+            return null;
+        }
+    }
+
+    public Room addMessageToRoom(int roomId, Message message) {
+        Room room = findRoom(roomId);
+        room.addMessage(message);
         return repository.save(room);
     }
 
-    public Room update(Room room) {
+    public Room addPersonToRoom(int roomId, Person person) {
+        Room room = findRoom(roomId);
+        room.addPerson(person);
+        return repository.save(room);
+    }
+
+    public Room updateRoomName(int roomId, String roomName) {
+        Room room = findRoom(roomId);
+        room.setName(roomName);
+        return repository.save(room);
+    }
+
+    public Room exitPersonFromRoom(int roomId, int personId) {
+        Room room = findRoom(roomId);
+        if (!room.getPersons().removeIf(person -> person.getId() == personId)) {
+            throw new NoSuchElementException("Person is not in the room");
+        }
+        return repository.save(room);
+    }
+
+    public Room deleteMessageFromRoom(int roomId, int msgId, String msgPersonName) {
+        Room room = findRoom(roomId);
+        if (!room.getMessages().removeIf(msg -> msg.getId() == msgId
+                && msg.getPersonName().equals(msgPersonName))) {
+            throw new NoSuchElementException("Message is not in the room");
+        }
         return repository.save(room);
     }
 
     public void deleteById(int id) {
+        findRoom(id);
         repository.deleteById(id);
+    }
+
+    private Room findRoom(int id) {
+        var room = repository.findById(id);
+        if (room.isEmpty()) {
+            throw new NoSuchElementException("Room not found");
+        }
+        return room.get();
     }
 }

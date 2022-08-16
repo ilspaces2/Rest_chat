@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface RoomRepository extends CrudRepository<Room, Integer> {
 
-    @Query("select r from Room r join fetch r.persons p join fetch p.role where r.id=?1")
+    @Query("select distinct r from Room r left join fetch r.persons p left join fetch p.role where r.id=?1")
     Optional<Room> findById(int id);
 
-    @Query("select r from Room r join fetch r.persons p join fetch p.role")
+    @Query("select distinct r from Room r left join fetch r.persons p left join fetch p.role")
     List<Room> findAll();
 }

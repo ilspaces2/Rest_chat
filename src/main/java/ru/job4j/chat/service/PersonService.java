@@ -10,7 +10,7 @@ import org.postgresql.util.PSQLException;
 import ru.job4j.chat.repository.RoleRepository;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 @Service
 public class PersonService {
@@ -27,8 +27,12 @@ public class PersonService {
         this.encoder = encoder;
     }
 
-    public Optional<Person> findById(int id) {
-        return personRepository.findById(id);
+    public Person findById(int id) {
+        var person = personRepository.findById(id);
+        if (person.isEmpty()) {
+            throw new NoSuchElementException("Person not found");
+        }
+        return person.get();
     }
 
     public void save(Person person) {
