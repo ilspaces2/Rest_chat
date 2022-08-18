@@ -19,7 +19,7 @@ public class Room {
             inverseJoinColumns = @JoinColumn(name = " message_id"))
     private List<Message> messages;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "room_persons",
             joinColumns = @JoinColumn(name = "room_id"),
             inverseJoinColumns = @JoinColumn(name = "person_id"))

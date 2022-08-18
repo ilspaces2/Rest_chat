@@ -31,7 +31,8 @@
 - GET /room -получить все комнаты
 - GET /room/id -найти комнату по id
 - GET /person/id -найти пользователя по id
-- POST /person -создать пользователя (body - {"name":"userName","password":"userPassword"})
+- POST /person/sign-up -создать пользователя (body - {"name":"userName","password":"userPassword"})
+- POST /login -войти в систему (body - {"name":"userName","password":"userPassword"})
 - POST /person/enterRoom/roomId/personId - войти в комнату по id комнаты и id пользователя
 - DELETE /person/exitRoom/roomId/personId - выйти из комнаты по id комнаты и id пользователя
 - POST /person/sendMsg/roomId/personId - отправить сообщение в комнату

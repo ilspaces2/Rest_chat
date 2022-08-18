@@ -10,9 +10,7 @@ create table person
     name     text NOT NULL unique,
     date_reg timestamp,
     password text,
-    enabled  boolean default true,
-    role_id  int  not null references role (id)
-);
+    enabled  boolean default true);
 
 create table room
 (
@@ -38,4 +36,10 @@ create table room_messages
 (
     room_id    int references room (id),
     message_id int references message (id)
+);
+
+create table person_roles
+(
+    person_id int references person (id),
+    roles_id   int references role(id)
 );

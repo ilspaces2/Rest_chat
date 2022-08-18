@@ -1,8 +1,14 @@
 package ru.job4j.chat.model;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "person")
@@ -19,9 +25,11 @@ public class Person {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateReg;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(name = "person_roles",
+            joinColumns = @JoinColumn(name = "person_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_id"))
+    private Set<Role> role = new HashSet<>();
 
     private boolean enabled;
 
@@ -52,12 +60,22 @@ public class Person {
         this.dateReg = dateReg;
     }
 
-    public Role getRole() {
+    public Set<Role> getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(Set<Role> role) {
         this.role = role;
+    }
+
+    public Set<GrantedAuthority> convertToAuthority() {
+        return role.stream()
+                .map(r -> new SimpleGrantedAuthority(r.getName()))
+                .collect(Collectors.toSet());
+    }
+
+    public void addRole(Role role) {
+        this.role.add(role);
     }
 
     public boolean isEnabled() {

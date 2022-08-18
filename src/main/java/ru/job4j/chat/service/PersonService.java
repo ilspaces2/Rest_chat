@@ -40,7 +40,7 @@ public class PersonService {
         }
         person.setDateReg(new Date());
         person.setEnabled(true);
-        person.setRole(defaultRole);
+        person.addRole(defaultRole);
         person.setPassword(encoder.encode(person.getPassword()));
         personRepository.save(person);
     }

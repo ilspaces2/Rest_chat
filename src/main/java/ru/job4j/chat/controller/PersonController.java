@@ -37,7 +37,7 @@ public class PersonController {
         return new ResponseEntity<>(personService.findById(personId), HttpStatus.OK);
     }
 
-    @PostMapping("")
+    @PostMapping("/sign-up")
     public ResponseEntity<Void> createPerson(@RequestBody Person person) {
         personService.save(person);
         return ResponseEntity.ok().build();
