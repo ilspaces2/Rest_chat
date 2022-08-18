@@ -10,4 +10,7 @@ public interface PersonRepository extends CrudRepository<Person, Integer> {
 
     @Query("select p from Person p join fetch p.role where p.id=?1")
     Optional<Person> findById(int id);
+
+    @Query("select p.name from Person p where p.name=?1")
+    Optional<Person> findPersonByName(String personName);
 }

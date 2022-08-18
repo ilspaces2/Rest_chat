@@ -14,4 +14,8 @@ public interface RoomRepository extends CrudRepository<Room, Integer> {
 
     @Query("select distinct r from Room r left join fetch r.persons p left join fetch p.role")
     List<Room> findAll();
+
+    @Query("select r.name from Room r  where r.name=?1")
+    Optional<Room> findRoomByName(String roomName);
+
 }

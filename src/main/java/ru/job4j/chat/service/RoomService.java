@@ -1,7 +1,5 @@
 package ru.job4j.chat.service;
 
-import org.postgresql.util.PSQLException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import ru.job4j.chat.exception.RoomAlreadyExistsException;
 import ru.job4j.chat.model.Message;
@@ -30,15 +28,10 @@ public class RoomService {
     }
 
     public Room save(Room room) {
-        try {
-            return repository.save(room);
-        } catch (DataAccessException err) {
-            if (err.getMostSpecificCause() instanceof PSQLException
-                    && "23505".equals(((PSQLException) err.getMostSpecificCause()).getSQLState())) {
-                throw new RoomAlreadyExistsException("Room already exists");
-            }
-            return null;
+        if (repository.findRoomByName(room.getName()).isPresent()) {
+            throw new RoomAlreadyExistsException("Room already exists");
         }
+        return repository.save(room);
     }
 
     public Room addMessageToRoom(int roomId, Message message) {

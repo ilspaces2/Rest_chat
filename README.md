@@ -1,10 +1,30 @@
 [![Java CI with Maven](https://github.com/ilspaces2/job4j_chat/actions/workflows/maven.yml/badge.svg)](https://github.com/ilspaces2/job4j_chat/actions/workflows/maven.yml)
 
-### Реализация REST Api чата.
+### Реализация REST Api чата
 
 - В чате есть различные комнаты с тематическими названиями.
   Можно заходить в любую комнату или сразу в несколько и обмениваться сообщениями.
   Если комната не устраивает то можно из нее выйти.
+
+### Запуск приложения
+
+1. Установить на пк : Java, PostgreSQL, Maven.
+
+2. Через терминал создать базу данных в postgresql c названием chat при помощи команд:
+
+- psql -U yourLogin
+- enter yourPassword
+- create database chat;
+
+3. Через терминал запустить приложение при помощи maven :
+
+- mvn spring-boot:run
+
+4. Также можно запусть при помощи maven + java
+
+- mvn clean install
+- cd target
+- java -jar chat-0.0.1.jar
 
 #### Команды для пользователя
 
