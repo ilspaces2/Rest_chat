@@ -3,11 +3,12 @@ package ru.job4j.chat.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import ru.job4j.chat.exception.UsernameAlreadyExistsException;
 import ru.job4j.chat.model.Message;
 import ru.job4j.chat.model.Person;
+import ru.job4j.chat.service.MessageService;
 import ru.job4j.chat.service.PersonService;
+import ru.job4j.chat.service.RoomService;
 
 import java.util.NoSuchElementException;
 
@@ -15,21 +16,14 @@ import java.util.NoSuchElementException;
 @RequestMapping("/person")
 public class PersonController {
 
-    private static final String API_ROOM_ADD_PERSON = "http://localhost:8080/room/addPerson/{roomId}";
-
-    private static final String API_ROOM_DEL_PERSON = "http://localhost:8080/room/exitRoom/{roomId}/{personId}";
-
-    private static final String API_ROOM_ADD_MESSAGE = "http://localhost:8080/room/addMsg/{roomId}";
-
-    private static final String API_ROOM_DEL_MESSAGE = "http://localhost:8080/room/delMsg/{roomId}/{msgPersonName}/{msgId}";
-
     private final PersonService personService;
+    private final RoomService roomService;
+    private final MessageService messageService;
 
-    private final RestTemplate rest;
-
-    public PersonController(PersonService personService, RestTemplate rest) {
+    public PersonController(PersonService personService, RoomService roomService, MessageService messageService) {
         this.personService = personService;
-        this.rest = rest;
+        this.roomService = roomService;
+        this.messageService = messageService;
     }
 
     @GetMapping("/{personId}")
@@ -45,7 +39,7 @@ public class PersonController {
 
     @PostMapping("/enterRoom/{roomId}/{personId}")
     public ResponseEntity<String> enterRoom(@PathVariable int roomId, @PathVariable int personId) {
-        rest.postForObject(API_ROOM_ADD_PERSON, personService.findById(personId), Person.class, roomId);
+        roomService.addPersonToRoom(roomId, personService.findById(personId));
         return new ResponseEntity<>(
                 String.format(" PersonId: %d enter the roomId: %d ", personId, roomId),
                 HttpStatus.OK
@@ -54,8 +48,7 @@ public class PersonController {
 
     @DeleteMapping("/exitRoom/{roomId}/{personId}")
     public ResponseEntity<String> exitRoom(@PathVariable int roomId, @PathVariable int personId) {
-        personService.findById(personId);
-        rest.delete(API_ROOM_DEL_PERSON, roomId, personId);
+        roomService.exitPersonFromRoom(roomId, personService.findById(personId).getId());
         return new ResponseEntity<>(
                 String.format(" PersonId: %d leaving the roomId: %d ", personId, roomId),
                 HttpStatus.OK
@@ -65,7 +58,7 @@ public class PersonController {
     @PostMapping("/sendMsg/{roomId}/{personId}")
     public ResponseEntity<String> sendMsg(@RequestBody Message message, @PathVariable int roomId, @PathVariable int personId) {
         message.setPersonName(personService.findById(personId).getName());
-        rest.postForObject(API_ROOM_ADD_MESSAGE, message, Message.class, roomId);
+        roomService.addMessageToRoom(roomId, messageService.save(message));
         return new ResponseEntity<>(
                 " Message send ", HttpStatus.OK
         );
@@ -73,7 +66,8 @@ public class PersonController {
 
     @DeleteMapping("/delMsg/{roomId}/{personId}/{msgId}")
     public ResponseEntity<String> deleteMsg(@PathVariable int roomId, @PathVariable int personId, @PathVariable int msgId) {
-        rest.delete(API_ROOM_DEL_MESSAGE, roomId, personService.findById(personId).getName(), msgId);
+        roomService.deleteMessageFromRoom(roomId, msgId, personService.findById(personId).getName());
+        messageService.deleteById(msgId);
         return new ResponseEntity<>(
                 " Message delete ", HttpStatus.OK
         );
