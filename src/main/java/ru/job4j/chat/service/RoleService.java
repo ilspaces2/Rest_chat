@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import ru.job4j.chat.model.Role;
 import ru.job4j.chat.repository.RoleRepository;
 
+import java.util.Optional;
+
 @Service
 public class RoleService {
 
@@ -13,7 +15,7 @@ public class RoleService {
         this.repository = repository;
     }
 
-    public Role findByName(String name) {
+    public Optional<Role> findByName(String name) {
         return repository.findByName(name);
     }
 }

@@ -23,7 +23,7 @@ public class PersonService {
     public PersonService(PersonRepository personRepository, RoleRepository roleRepository, PasswordEncoder encoder) {
         this.personRepository = personRepository;
         this.encoder = encoder;
-        this.defaultRole = roleRepository.findByName("USER");
+        this.defaultRole = roleRepository.findByName("USER").orElse(null);
     }
 
     public Person findById(int id) {

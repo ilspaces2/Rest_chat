@@ -10,11 +10,9 @@ import ru.job4j.chat.service.MessageService;
 import ru.job4j.chat.service.PersonService;
 import ru.job4j.chat.service.RoomService;
 
-import java.util.NoSuchElementException;
-
 @RestController
 @RequestMapping("/person")
-public class PersonController {
+public class PersonController implements CheckArguments {
 
     private final PersonService personService;
     private final RoomService roomService;
@@ -28,17 +26,22 @@ public class PersonController {
 
     @GetMapping("/{personId}")
     public ResponseEntity<Person> findPersonById(@PathVariable int personId) {
+        checkArgumentId(personId, "Person id incorrect");
         return new ResponseEntity<>(personService.findById(personId), HttpStatus.OK);
     }
 
     @PostMapping("/sign-up")
     public ResponseEntity<Void> createPerson(@RequestBody Person person) {
+        checkArgumentIsBlank(person.getName(), "Person name is empty");
+        checkArgumentIsBlank(person.getPassword(), "Person password is empty");
         personService.save(person);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/enterRoom/{roomId}/{personId}")
     public ResponseEntity<String> enterRoom(@PathVariable int roomId, @PathVariable int personId) {
+        checkArgumentId(personId, "Person id incorrect");
+        checkArgumentId(roomId, "Room id incorrect");
         roomService.addPersonToRoom(roomId, personService.findById(personId));
         return new ResponseEntity<>(
                 String.format(" PersonId: %d enter the roomId: %d ", personId, roomId),
@@ -48,6 +51,8 @@ public class PersonController {
 
     @DeleteMapping("/exitRoom/{roomId}/{personId}")
     public ResponseEntity<String> exitRoom(@PathVariable int roomId, @PathVariable int personId) {
+        checkArgumentId(personId, "Person id incorrect");
+        checkArgumentId(roomId, "Room id incorrect");
         roomService.exitPersonFromRoom(roomId, personService.findById(personId).getId());
         return new ResponseEntity<>(
                 String.format(" PersonId: %d leaving the roomId: %d ", personId, roomId),
@@ -57,6 +62,9 @@ public class PersonController {
 
     @PostMapping("/sendMsg/{roomId}/{personId}")
     public ResponseEntity<String> sendMsg(@RequestBody Message message, @PathVariable int roomId, @PathVariable int personId) {
+        checkArgumentId(personId, "Person id incorrect");
+        checkArgumentId(roomId, "Room id incorrect");
+        checkArgumentIsBlank(message.getText(), "Msg is empty");
         message.setPersonName(personService.findById(personId).getName());
         roomService.addMessageToRoom(roomId, messageService.save(message));
         return new ResponseEntity<>(
@@ -66,6 +74,9 @@ public class PersonController {
 
     @DeleteMapping("/delMsg/{roomId}/{personId}/{msgId}")
     public ResponseEntity<String> deleteMsg(@PathVariable int roomId, @PathVariable int personId, @PathVariable int msgId) {
+        checkArgumentId(personId, "Person id incorrect");
+        checkArgumentId(roomId, "Room id incorrect");
+        checkArgumentId(msgId, "Msg id incorrect");
         roomService.deleteMessageFromRoom(roomId, msgId, personService.findById(personId).getName());
         messageService.deleteById(msgId);
         return new ResponseEntity<>(
@@ -76,10 +87,5 @@ public class PersonController {
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<String> handleException(UsernameAlreadyExistsException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleException(NoSuchElementException e) {
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
