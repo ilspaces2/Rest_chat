@@ -3,6 +3,7 @@ package ru.job4j.chat.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.job4j.chat.dto.RoomUpdateNameDTO;
 import ru.job4j.chat.exception.RoomAlreadyExistsException;
 import ru.job4j.chat.model.Room;
 import ru.job4j.chat.service.RoomService;
@@ -36,12 +37,12 @@ public class RoomController implements CheckArguments {
         return new ResponseEntity<>(roomService.save(room), HttpStatus.CREATED);
     }
 
-    @PutMapping("/updRoomName/{roomId}")
-    public ResponseEntity<String> updateRoomName(@PathVariable int roomId, @RequestBody String roomName) {
-        checkArgumentId(roomId, "Room id incorrect");
-        checkArgumentIsBlank(roomName, "Room name is empty");
-        roomService.updateRoomName(roomId, roomName);
-        return new ResponseEntity<>(String.format(" Room name id %s ", roomName), HttpStatus.OK);
+    @PatchMapping("/updRoomName")
+    public ResponseEntity<String> updateRoomName(@RequestBody RoomUpdateNameDTO room) {
+        checkArgumentId(room.getId(), "Room id incorrect");
+        checkArgumentIsBlank(room.getRoomName(), "Room name is empty");
+        roomService.updateRoomName(room);
+        return new ResponseEntity<>(String.format(" Room name is %s ", room.getRoomName()), HttpStatus.OK);
     }
 
     @DeleteMapping("/{roomId}")

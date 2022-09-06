@@ -3,6 +3,8 @@ package ru.job4j.chat.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.job4j.chat.dto.PersonUpdateNameDTO;
+import ru.job4j.chat.dto.PersonSignUpDTO;
 import ru.job4j.chat.exception.UsernameAlreadyExistsException;
 import ru.job4j.chat.model.Message;
 import ru.job4j.chat.model.Person;
@@ -31,7 +33,7 @@ public class PersonController implements CheckArguments {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<Void> createPerson(@RequestBody Person person) {
+    public ResponseEntity<Void> createPerson(@RequestBody PersonSignUpDTO person) {
         checkArgumentIsBlank(person.getName(), "Person name is empty");
         checkArgumentIsBlank(person.getPassword(), "Person password is empty");
         personService.save(person);
@@ -82,6 +84,14 @@ public class PersonController implements CheckArguments {
         return new ResponseEntity<>(
                 " Message delete ", HttpStatus.OK
         );
+    }
+
+    @PatchMapping("/updPersonName")
+    public ResponseEntity<String> updatePersonName(@RequestBody PersonUpdateNameDTO person) {
+        checkArgumentId(person.getId(), "Person id incorrect");
+        checkArgumentIsBlank(person.getName(), "Person name is empty");
+        personService.updatePersonName(person);
+        return new ResponseEntity<>(String.format(" Person name is %s ", person.getName()), HttpStatus.OK);
     }
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)

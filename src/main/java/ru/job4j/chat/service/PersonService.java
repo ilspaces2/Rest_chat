@@ -2,6 +2,8 @@ package ru.job4j.chat.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.job4j.chat.dto.PersonUpdateNameDTO;
+import ru.job4j.chat.dto.PersonSignUpDTO;
 import ru.job4j.chat.exception.UsernameAlreadyExistsException;
 import ru.job4j.chat.model.Person;
 import ru.job4j.chat.model.Role;
@@ -10,6 +12,7 @@ import ru.job4j.chat.repository.RoleRepository;
 
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class PersonService {
@@ -34,14 +37,23 @@ public class PersonService {
         return person.get();
     }
 
-    public void save(Person person) {
-        if (personRepository.findPersonByName(person.getName()).isPresent()) {
+    public void save(PersonSignUpDTO person) {
+        Optional<Person> optionalPerson = personRepository.findPersonByName(person.getName());
+        if (optionalPerson.isPresent()) {
             throw new UsernameAlreadyExistsException("Person already exists");
         }
-        person.setDateReg(new Date());
-        person.setEnabled(true);
-        person.addRole(defaultRole);
-        person.setPassword(encoder.encode(person.getPassword()));
-        personRepository.save(person);
+        Person rzl = optionalPerson.get();
+        rzl.setDateReg(new Date());
+        rzl.setEnabled(true);
+        rzl.addRole(defaultRole);
+        rzl.setPassword(encoder.encode(person.getPassword()));
+        personRepository.save(rzl);
+    }
+
+    public void updatePersonName(PersonUpdateNameDTO person) {
+        Person rzl = findById(person.getId());
+        rzl.setName(person.getName());
+        personRepository.save(rzl);
+
     }
 }

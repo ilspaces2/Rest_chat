@@ -1,6 +1,7 @@
 package ru.job4j.chat.service;
 
 import org.springframework.stereotype.Service;
+import ru.job4j.chat.dto.RoomUpdateNameDTO;
 import ru.job4j.chat.exception.RoomAlreadyExistsException;
 import ru.job4j.chat.model.Message;
 import ru.job4j.chat.model.Person;
@@ -46,10 +47,10 @@ public class RoomService {
         return repository.save(room);
     }
 
-    public Room updateRoomName(int roomId, String roomName) {
-        Room room = findRoom(roomId);
-        room.setName(roomName);
-        return repository.save(room);
+    public void updateRoomName(RoomUpdateNameDTO room) {
+        Room rzl = findRoom(room.getId());
+        rzl.setName(room.getRoomName());
+        repository.save(rzl);
     }
 
     public Room exitPersonFromRoom(int roomId, int personId) {
