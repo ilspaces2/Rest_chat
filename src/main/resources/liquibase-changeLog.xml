@@ -7,4 +7,5 @@
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
     <include file="db/001_init_table_schema.sql" relativeToChangelogFile="true"/>
     <include file="db/002_insert_role_person_schema.sql" relativeToChangelogFile="true"/>
+    <include file="db/003_update_column_name_in_person_table.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

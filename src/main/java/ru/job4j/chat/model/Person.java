@@ -23,7 +23,7 @@ public class Person {
     private String password;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dateReg;
+    private Date registrationDate;
 
     @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(name = "person_roles",
@@ -52,12 +52,12 @@ public class Person {
         this.name = name;
     }
 
-    public Date getDateReg() {
-        return dateReg;
+    public Date getRegistrationDate() {
+        return registrationDate;
     }
 
-    public void setDateReg(Date dateReg) {
-        this.dateReg = dateReg;
+    public void setRegistrationDate(Date registrationDate) {
+        this.registrationDate = registrationDate;
     }
 
     public Set<Role> getRole() {

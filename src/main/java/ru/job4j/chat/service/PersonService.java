@@ -43,7 +43,7 @@ public class PersonService {
             throw new UsernameAlreadyExistsException("Person already exists");
         }
         Person rzl = optionalPerson.get();
-        rzl.setDateReg(new Date());
+        rzl.setRegistrationDate(new Date());
         rzl.setEnabled(true);
         rzl.addRole(defaultRole);
         rzl.setPassword(encoder.encode(person.getPassword()));
@@ -54,6 +54,5 @@ public class PersonService {
         Person rzl = findById(person.getId());
         rzl.setName(person.getName());
         personRepository.save(rzl);
-
     }
 }
