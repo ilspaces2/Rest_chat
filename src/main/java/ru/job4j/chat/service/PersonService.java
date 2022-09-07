@@ -12,7 +12,6 @@ import ru.job4j.chat.repository.RoleRepository;
 
 import java.util.Date;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class PersonService {
@@ -38,11 +37,11 @@ public class PersonService {
     }
 
     public void save(PersonSignUpDTO person) {
-        Optional<Person> optionalPerson = personRepository.findPersonByName(person.getName());
-        if (optionalPerson.isPresent()) {
+        if (personRepository.findPersonByName(person.getName()).isPresent()) {
             throw new UsernameAlreadyExistsException("Person already exists");
         }
-        Person rzl = optionalPerson.get();
+        Person rzl = new Person();
+        rzl.setName(person.getName());
         rzl.setRegistrationDate(new Date());
         rzl.setEnabled(true);
         rzl.addRole(defaultRole);

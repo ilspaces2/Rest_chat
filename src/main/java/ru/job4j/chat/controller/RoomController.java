@@ -8,6 +8,7 @@ import ru.job4j.chat.exception.RoomAlreadyExistsException;
 import ru.job4j.chat.model.Room;
 import ru.job4j.chat.service.RoomService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -32,15 +33,12 @@ public class RoomController implements CheckArguments {
     }
 
     @PostMapping("")
-    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
-        checkArgumentIsBlank(room.getName(), "Room name is empty");
+    public ResponseEntity<Room> createRoom(@RequestBody @Valid Room room) {
         return new ResponseEntity<>(roomService.save(room), HttpStatus.CREATED);
     }
 
     @PatchMapping("/updRoomName")
-    public ResponseEntity<String> updateRoomName(@RequestBody RoomUpdateNameDTO room) {
-        checkArgumentId(room.getId(), "Room id incorrect");
-        checkArgumentIsBlank(room.getRoomName(), "Room name is empty");
+    public ResponseEntity<String> updateRoomName(@RequestBody @Valid RoomUpdateNameDTO room) {
         roomService.updateRoomName(room);
         return new ResponseEntity<>(String.format(" Room name is %s ", room.getRoomName()), HttpStatus.OK);
     }

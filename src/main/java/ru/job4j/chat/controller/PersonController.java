@@ -12,6 +12,8 @@ import ru.job4j.chat.service.MessageService;
 import ru.job4j.chat.service.PersonService;
 import ru.job4j.chat.service.RoomService;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/person")
 public class PersonController implements CheckArguments {
@@ -33,9 +35,7 @@ public class PersonController implements CheckArguments {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<Void> createPerson(@RequestBody PersonSignUpDTO person) {
-        checkArgumentIsBlank(person.getName(), "Person name is empty");
-        checkArgumentIsBlank(person.getPassword(), "Person password is empty");
+    public ResponseEntity<Void> createPerson(@RequestBody @Valid PersonSignUpDTO person) {
         personService.save(person);
         return ResponseEntity.ok().build();
     }
@@ -63,10 +63,9 @@ public class PersonController implements CheckArguments {
     }
 
     @PostMapping("/sendMsg/{roomId}/{personId}")
-    public ResponseEntity<String> sendMsg(@RequestBody Message message, @PathVariable int roomId, @PathVariable int personId) {
+    public ResponseEntity<String> sendMsg(@RequestBody @Valid Message message, @PathVariable int roomId, @PathVariable int personId) {
         checkArgumentId(personId, "Person id incorrect");
         checkArgumentId(roomId, "Room id incorrect");
-        checkArgumentIsBlank(message.getText(), "Msg is empty");
         message.setPersonName(personService.findById(personId).getName());
         roomService.addMessageToRoom(roomId, messageService.save(message));
         return new ResponseEntity<>(
@@ -87,9 +86,7 @@ public class PersonController implements CheckArguments {
     }
 
     @PatchMapping("/updPersonName")
-    public ResponseEntity<String> updatePersonName(@RequestBody PersonUpdateNameDTO person) {
-        checkArgumentId(person.getId(), "Person id incorrect");
-        checkArgumentIsBlank(person.getName(), "Person name is empty");
+    public ResponseEntity<String> updatePersonName(@RequestBody @Valid PersonUpdateNameDTO person) {
         personService.updatePersonName(person);
         return new ResponseEntity<>(String.format(" Person name is %s ", person.getName()), HttpStatus.OK);
     }
