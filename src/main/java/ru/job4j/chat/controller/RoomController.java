@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/room")
-public class RoomController implements CheckArguments {
+public class RoomController {
 
     private final RoomService roomService;
 
@@ -28,7 +28,6 @@ public class RoomController implements CheckArguments {
 
     @GetMapping("/{roomId}")
     public ResponseEntity<Room> findRoomById(@PathVariable int roomId) {
-        checkArgumentId(roomId, "Room id incorrect");
         return new ResponseEntity<>(roomService.findById(roomId), HttpStatus.OK);
     }
 
@@ -45,7 +44,6 @@ public class RoomController implements CheckArguments {
 
     @DeleteMapping("/{roomId}")
     public ResponseEntity<String> deleteRoom(@PathVariable int roomId) {
-        checkArgumentId(roomId, "Room id incorrect");
         roomService.deleteById(roomId);
         return new ResponseEntity<>(
                 String.format(" RoomId: %d delete", roomId), HttpStatus.OK

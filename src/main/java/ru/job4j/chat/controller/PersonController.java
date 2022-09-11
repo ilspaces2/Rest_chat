@@ -16,7 +16,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/person")
-public class PersonController implements CheckArguments {
+public class PersonController {
 
     private final PersonService personService;
     private final RoomService roomService;
@@ -30,7 +30,6 @@ public class PersonController implements CheckArguments {
 
     @GetMapping("/{personId}")
     public ResponseEntity<Person> findPersonById(@PathVariable int personId) {
-        checkArgumentId(personId, "Person id incorrect");
         return new ResponseEntity<>(personService.findById(personId), HttpStatus.OK);
     }
 
@@ -42,8 +41,6 @@ public class PersonController implements CheckArguments {
 
     @PostMapping("/enterRoom/{roomId}/{personId}")
     public ResponseEntity<String> enterRoom(@PathVariable int roomId, @PathVariable int personId) {
-        checkArgumentId(personId, "Person id incorrect");
-        checkArgumentId(roomId, "Room id incorrect");
         roomService.addPersonToRoom(roomId, personService.findById(personId));
         return new ResponseEntity<>(
                 String.format(" PersonId: %d enter the roomId: %d ", personId, roomId),
@@ -53,8 +50,6 @@ public class PersonController implements CheckArguments {
 
     @DeleteMapping("/exitRoom/{roomId}/{personId}")
     public ResponseEntity<String> exitRoom(@PathVariable int roomId, @PathVariable int personId) {
-        checkArgumentId(personId, "Person id incorrect");
-        checkArgumentId(roomId, "Room id incorrect");
         roomService.exitPersonFromRoom(roomId, personService.findById(personId).getId());
         return new ResponseEntity<>(
                 String.format(" PersonId: %d leaving the roomId: %d ", personId, roomId),
@@ -64,8 +59,6 @@ public class PersonController implements CheckArguments {
 
     @PostMapping("/sendMsg/{roomId}/{personId}")
     public ResponseEntity<String> sendMsg(@RequestBody @Valid Message message, @PathVariable int roomId, @PathVariable int personId) {
-        checkArgumentId(personId, "Person id incorrect");
-        checkArgumentId(roomId, "Room id incorrect");
         message.setPersonName(personService.findById(personId).getName());
         roomService.addMessageToRoom(roomId, messageService.save(message));
         return new ResponseEntity<>(
@@ -75,9 +68,6 @@ public class PersonController implements CheckArguments {
 
     @DeleteMapping("/delMsg/{roomId}/{personId}/{msgId}")
     public ResponseEntity<String> deleteMsg(@PathVariable int roomId, @PathVariable int personId, @PathVariable int msgId) {
-        checkArgumentId(personId, "Person id incorrect");
-        checkArgumentId(roomId, "Room id incorrect");
-        checkArgumentId(msgId, "Msg id incorrect");
         roomService.deleteMessageFromRoom(roomId, msgId, personService.findById(personId).getName());
         messageService.deleteById(msgId);
         return new ResponseEntity<>(
